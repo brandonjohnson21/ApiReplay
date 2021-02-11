@@ -101,6 +101,7 @@ public class Main {
                 while (Replay.getInstance().getStatus() != Status.COMPLETE && Replay.getInstance().getStatus() != Status.STOPPED) {
                     Replay.getInstance().tick();
                 }
+                System.exit(0);
             }
         } );
         ReplayThread.start();
