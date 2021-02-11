@@ -78,14 +78,19 @@ public class ApiHandler {
 //        return Paths.get(jsonFilename);
 //    }
     public void postData(DataPoint dataPoint) throws IOException, InterruptedException {
-        Gson gson = new Gson();
+    	Gson gson = new Gson();
+    	String s=gson.toJson(dataPoint.data);
         HttpRequest request = HttpRequest.newBuilder(
                 URI.create(apiUrl+dataPoint.endpoint))
                 .headers("accept", "application/json",
                         "Authorization", authHeaderValue,
                         "Content-Type","application/json"
-                ).POST(HttpRequest.BodyPublishers.ofString(gson.toJson(dataPoint.data), UTF_8))
+                ).POST(HttpRequest.BodyPublishers.ofString(s, UTF_8))
                 .build();
+        System.out.println("-> "+request.toString());
+        System.out.println("   "+request.headers());
+        System.out.println("   "+s);
+        
         HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
         if (response.statusCode()>399) {
             throw new IOException ("Failed to post data to api. Received status code: "+response.statusCode()+"\n"+request);
