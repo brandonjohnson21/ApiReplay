@@ -93,6 +93,9 @@ public class ApiHandler {
         
         HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
         if (response.statusCode()>399) {
+            System.out.println("ERROR response "+response.statusCode());
+            System.out.println("Body:\n"+response.body());
+            
             throw new IOException ("Failed to post data to api. Received status code: "+response.statusCode()+"\n"+request);
         }
     }
