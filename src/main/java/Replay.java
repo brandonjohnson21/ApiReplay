@@ -171,7 +171,7 @@ public class Replay {
                     }
                 }
             }
-        if (lastSentIdx >= this.data.size()) {
+        if (lastSentIdx >= this.data.size()-1) {
             this.status = Status.COMPLETE;
         }
         this.ticking.release();
