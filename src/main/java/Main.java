@@ -4,6 +4,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Main {
     public static ApiHandler apiHandler;
@@ -20,6 +21,8 @@ public class Main {
                 "-?" // help
         );
         HashMap<String, String> arguments = new HashMap<>();
+        Map<String, String> env = System.getenv();
+
         for (int i =0; i<args.length; i+=2){
             if (!args[i].equals("-?") && !args[i].equals("?"))
                 arguments.put(args[i],args[i+1]);
@@ -53,7 +56,11 @@ public class Main {
             apiHandler=new ApiHandler(arguments.get("-h"));
         }
         if (!(arguments.containsKey("-u") && arguments.containsKey("-p")) && !(arguments.containsKey("-a"))) {
-            throw new IllegalArgumentException("Missing credentials: -u/-p or -a");
+            if (!(env.containsKey("UDL_USR") && env.containsKey("UDL_PWD"))) {
+                throw new IllegalArgumentException("Missing credentials: -u/-p or -a");
+            }else{
+                apiHandler.setCredentials(env.get("UDL_USR"),env.get("UDL_PWD"));
+            }
         }else{
             if (arguments.containsKey("-a")){
                 apiHandler.setCredentials(arguments.get("-a"));
