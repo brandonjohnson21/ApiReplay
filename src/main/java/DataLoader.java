@@ -74,6 +74,7 @@ public class DataLoader {
         data.forEach(d->{
             d.createdAt=ChronoUnit.NANOS.between(firstTime,(LocalDateTime)d.data.get("createdAt"));
             d.timestamp=ChronoUnit.NANOS.between(firstTime,(LocalDateTime)d.data.get("ts"));
+            stripProperties(d.data);
         });
         Collections.sort(data);
         return data;
@@ -82,5 +83,9 @@ public class DataLoader {
         LocalDateTime lowestCAForSet = data.stream().map(e->(LocalDateTime)e.data.get("createdAt")).filter(Objects::nonNull).reduce(now(ZoneId.of("UTC")),(lowest,cur)->(cur.compareTo(lowest) < 0)?cur:lowest);
         LocalDateTime lowestTSForSet = data.stream().map(e->(LocalDateTime)e.data.get("ts")).filter(Objects::nonNull).reduce(now(ZoneId.of("UTC")),(lowest,cur)->(cur.compareTo(lowest) < 0)?cur:lowest);
         return (lowestCAForSet.isBefore(lowestTSForSet))?lowestCAForSet:lowestTSForSet;
+    }
+    private void stripProperties(Map<String,Object> d) {
+        //TODO: if this becomes large, it may be better end-game to load schemas and compare against them
+        d.remove("idOnOrbit");
     }
 }
