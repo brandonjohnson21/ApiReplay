@@ -10,7 +10,7 @@ RUN  echo 'replay:replay' | chpasswd
 
 RUN service ssh start
 
-COPY ./replay.jar /home/replay/replay.jar
+COPY ./target/replay_maven-1.0-jar-with-dependencies.jar /home/replay/replay.jar
 COPY ./data /home/replay/data
 
 EXPOSE 22

@@ -1,6 +1,5 @@
 First generate the ApiReplay jar and move it.
   `mvn package`
-  `cp ./target/replay_maven-1.0-jar-with-dependencies.jar ./replay.jar`
 Also set up your ./data/ directory to be copied into the container.
 
 Build the docker image with
@@ -15,7 +14,7 @@ You can SSH into the container with
 Use the password "replay".
 
 You should then be able to run the jar using the following
-  `java -jar ./replay.jar -h <HOST> -d "./data/" -u fakeUser -p fakePassword`
+  `java -Xmx2g -jar ./replay.jar -h <HOST> -d "./data/" -u fakeUser -p fakePassword`
 Without adding any more networking, your host should be addressable as 172.17.0.1, eg.
-  `java -jar ./replay.jar -h http://172.17.0.1:7878 -d "./data/" -u fakeUser -p fakePassword`
+  `java -Xmx2g -jar ./replay.jar -h http://172.17.0.1:7878 -d "./data/" -u fakeUser -p fakePassword`
 
