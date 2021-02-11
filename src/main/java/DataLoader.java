@@ -48,20 +48,19 @@ public class DataLoader {
                     // Lambda requires effectively final. IDE doesnt see endpoint above as effectively final.
                     String finalEndpoint = endpoint;
                     int unfilteredSize = newData.size();
-                    newData = newData.stream().filter(d->d.containsKey("createdAt") && d.containsKey("ts")).collect(Collectors.toList());
+                    newData = newData.stream().filter(d->d.containsKey("createdAt")).collect(Collectors.toList());
 
                     data.addAll(
                             newData.stream().map(d -> {
                                 DataPoint dataPoint = new DataPoint();
                                 dataPoint.endpoint = finalEndpoint;
-                                d.replace("createdAt", LocalDateTime.parse((String) d.get("createdAt"), DateTimeFormatter.ISO_INSTANT.withZone(ZoneId.of("UTC"))));
-                                d.replace("ts", LocalDateTime.parse((String) d.get("ts"), DateTimeFormatter.ISO_INSTANT.withZone(ZoneId.of("UTC"))));
+                                Manipulator.convertTimestampStringsToLocalDateTime(d);
                                 dataPoint.data = d;
                                 return dataPoint;
                             }).collect(Collectors.toList())
                     );
                     if (unfilteredSize != newData.size()) {
-                        System.err.println((unfilteredSize-newData.size()) + " entries dropped from "+file.toString()+" due to missing ts or createdAt fields");
+                        System.err.println((unfilteredSize-newData.size()) + " entries dropped from "+file.toString()+" due to missing createdAt fields");
                     }
                     System.out.println("Loaded "+newData.size() + " entries from "+file.toString());
                 } catch (MalformedURLException e) {
@@ -77,17 +76,18 @@ public class DataLoader {
         LocalDateTime firstTime = getFirstTime(data);
         //convert ts and createdAt entries to nanosecond offsets from dataset start
         data.forEach(d->{
-            d.createdAt=ChronoUnit.NANOS.between(firstTime,(LocalDateTime)d.data.get("createdAt"));
-            d.timestamp=ChronoUnit.NANOS.between(firstTime,(LocalDateTime)d.data.get("ts"));
+            Manipulator.timestampsToNanoOffset(d.data,firstTime);
+            Object ca = d.data.get("createdAt");
+            if (ca instanceof Long)
+                d.createdAt= (Long) ca;
+
             stripProperties(d.data);
         });
         Collections.sort(data);
         return data;
     }
     private LocalDateTime getFirstTime(List<DataPoint> data) {
-        LocalDateTime lowestCAForSet = data.stream().map(e->(LocalDateTime)e.data.get("createdAt")).filter(Objects::nonNull).reduce(now(ZoneId.of("UTC")),(lowest,cur)->(cur.compareTo(lowest) < 0)?cur:lowest);
-        LocalDateTime lowestTSForSet = data.stream().map(e->(LocalDateTime)e.data.get("ts")).filter(Objects::nonNull).reduce(now(ZoneId.of("UTC")),(lowest,cur)->(cur.compareTo(lowest) < 0)?cur:lowest);
-        return (lowestCAForSet.isBefore(lowestTSForSet))?lowestCAForSet:lowestTSForSet;
+        return data.stream().map(e->(LocalDateTime)e.data.get("createdAt")).filter(Objects::nonNull).reduce(now(ZoneId.of("UTC")),(lowest,cur)->(cur.compareTo(lowest) < 0)?cur:lowest);
     }
     private void stripProperties(Map<String,Object> d) {
         //TODO: if this becomes large, it may be better end-game to load schemas and compare against them
