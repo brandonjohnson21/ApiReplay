@@ -27,8 +27,8 @@ Exporting/Importing the container:
 
 Export:
 docker save apireplay > apireplay.tar
-tar cfvz airplay.tar
+tar cfvz apireplay.tar.tgz apireplay.tar
 
 Import:
-tar xfvz airplay.tar.gz
-docker load airplay.tar
+tar xfvz apireplay.tar.gz
+docker load apireplay.tar
