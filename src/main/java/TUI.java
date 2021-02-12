@@ -8,9 +8,6 @@ public class TUI implements Runnable{
     public static TUI getInstance() {
         return _instance;
     }
-    public void inputHandler () {
-
-    }
 
     @Override
     public void run() {
@@ -19,8 +16,6 @@ public class TUI implements Runnable{
             String input = scanner.nextLine();
             if (input.startsWith("p")) {
                 Replay.getInstance().playPause();
-            } else if (input.startsWith("r")) {
-                Replay.getInstance().rewind();
             } else if (input.startsWith("q")) {
                 Replay.getInstance().stop();
                 break;

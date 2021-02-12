@@ -1,4 +1,3 @@
-
 import com.google.gson.Gson;
 
 import java.io.IOException;
@@ -7,6 +6,9 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.Base64;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -15,15 +17,14 @@ public class ApiHandler {
     private static HttpClient client = HttpClient.newHttpClient();
     private final String apiUrl;
     private String authHeaderValue;
+    private ExecutorService executor;
+    private static Gson gson = new Gson();
 
-//    ApiHandler(String apiUrl, String username, String password) {
-//        this(apiUrl,"Basic " + new String(Base64.getEncoder().encode((username+":"+password).getBytes(UTF_8))));
-//    }
-//    ApiHandler(String apiUrl, String authValue) {
-//        this(apiUrl);
-//        this.authHeaderValue=authValue;
-//    }
+    public void setThreads(int t) {
+        executor=Executors.newFixedThreadPool(t);
+    }
     ApiHandler(String apiUrl) {
+
         while (apiUrl.endsWith("/"))
             apiUrl = apiUrl.substring(0,apiUrl.length()-1);
 
@@ -38,6 +39,7 @@ public class ApiHandler {
     public String getApiUrl() {
         return apiUrl;
     }
+
 //    public List<Map<String,Object>> queryData(String queryFilename) throws IOException, InterruptedException {
 //        //String endpoint = "";
 //        Gson gson = new Gson();
@@ -100,6 +102,7 @@ public class ApiHandler {
             System.out.println("Body:\n"+response.body());
             
             throw new IOException ("Failed to post data to api. Received status code: "+response.statusCode()+"\n"+request);
+
         }
     }
 }

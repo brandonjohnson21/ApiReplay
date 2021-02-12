@@ -1,10 +1,7 @@
-import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
-import java.util.UUID;
 import java.util.concurrent.Semaphore;
 
 import static java.time.LocalDateTime.now;
@@ -16,21 +13,14 @@ public class Replay {
 
     }
     private static Replay _instance = new Replay();
-    private static Thread ReplayThread;
     private Status status  = Status.STOPPED;
-    private LocalDateTime curTime;
-    private LocalDateTime start;
-//    private LocalDateTime end;
     private int lastSentIdx=-1;
     private long skipNanoOffset = 0;
     private LocalDateTime localStartTime;
     private LocalDateTime lastTickTime;
-    private LocalDateTime playbackPauseTime;
-    private long pauseTime = 0;
     private int speed = 1;
     private List<DataPoint> data;
     private Semaphore ticking = new Semaphore(1);
-    public static Thread getThread() { return ReplayThread; }
 
     public void setData(List<DataPoint> data) {
         this.data = data;
@@ -40,33 +30,10 @@ public class Replay {
             _instance = new Replay();
         return _instance;
     }
-    public LocalDateTime getCurrentTime() {
-        if (curTime != null)
-            return curTime;
-        return LocalDateTime.MIN;
-    }
-
-    public void setCurrentTime(LocalDateTime d) {
-        curTime = d;
-    }
-
-    public LocalDateTime getStartTime() {
-        return start;
-    }
-
-    public void setStartTime(LocalDateTime start) {
-        this.start = start;
-    }
-//
-//    public LocalDateTime getEndTime() {
-//        return end;
-//    }
-//
-//    public void setEndTime(LocalDateTime end) {
-//        this.end = end;
-//    }
     public void playPause() {
         switch (this.status) {
+            case COMPLETE:
+                break;
             case PAUSED:
                 this.resume();
                 break;
@@ -97,35 +64,23 @@ public class Replay {
         this.status=Status.PLAYING;
     }
     public void pause() {
-        ticking.acquireUninterruptibly();
-        //this.restartAt(lastTickTime);
         this.status=Status.PAUSED;
-        ticking.release();
     }
     private void restartAt(LocalDateTime newStartTime) {
-        if (localStartTime != null) {
+        if (localStartTime != null && newStartTime!=null) {
             this.skipNanoOffset += ChronoUnit.NANOS.between(localStartTime, newStartTime);
             this.localStartTime = now(ZoneId.of("UTC"));
             this.lastTickTime = null;
         }
     }
     public void stop() {
-        ticking.acquireUninterruptibly();
         this.status=Status.STOPPED;
-        ticking.release();
-    }
-    public void rewind() {
-        ticking.acquireUninterruptibly();
-        this.reset();
-        ticking.release();
     }
     private void reset() {
         this.lastSentIdx=-1;
-        this.pauseTime=0;
+        this.lastTickTime = null;
+        this.skipNanoOffset=0;
     }
-//    public void rewind(long ms) {
-//
-//    }
     public void setSpeed(int multiplier) {
         ticking.acquireUninterruptibly();
         if (multiplier>0) {
@@ -157,15 +112,8 @@ public class Replay {
                         Manipulator.nanoOffsetsToLocalDateTime(d.data,localStartTime,skipNanoOffset,speed);
                         Manipulator.generateID(d.data);
                         // TODO: can add modifier call here for realtime modifications.  Not sure how performant these would be.
-                        try {
-                            Main.apiHandler.postData(d);
-                            lastSentIdx = i;
-                        } catch (IOException | InterruptedException e) {
-                            System.err.println("Cannot post status message to endpoint: "+d.endpoint);
-                            this.status=Status.STOPPED;
-                            e.printStackTrace();
-                            System.exit(-1);
-                        }
+                        Main.apiHandler.postData(d);
+                        lastSentIdx = i;
                     }else{
                         break;
                     }

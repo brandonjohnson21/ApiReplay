@@ -3,7 +3,6 @@ import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -42,6 +41,17 @@ public class Manipulator {
                 });
             }
         }
+        if (m.containsKey("dwells")) {
+            Object dwells = m.get("dwells");
+            if (dwells instanceof List) {
+                // this is probably not good form but without a full schema of each data type built into classes and handlers in each class...
+                ((List)dwells).stream().forEach(e->{
+                    if (e instanceof Map) {
+                        convertTimestampStringsToLocalDateTime((Map<String, Object>) e);
+                    }
+                });
+            }
+        }
     }
     public static void timestampsToNanoOffset(Map<String,Object> m, LocalDateTime base) {
         if (base == null || m == null)
@@ -64,6 +74,17 @@ public class Manipulator {
                 });
             }
         }
+        if (m.containsKey("dwells")) {
+            Object dwells = m.get("dwells");
+            if (dwells instanceof List) {
+                // this is probably not good form but without a full schema of each data type built into classes and handlers in each object class...
+                ((List)dwells).stream().forEach(e->{
+                    if (e instanceof Map) {
+                        timestampsToNanoOffset((Map<String, Object>) e,base);
+                    }
+                });
+            }
+        }
     }
     public static void nanoOffsetsToLocalDateTime(Map<String,Object> m, LocalDateTime base, long skip, int speed) {
         if (base == null || m == null)
@@ -80,6 +101,17 @@ public class Manipulator {
             if (locs instanceof List) {
                 // this is probably not good form but without a full schema of each data type built into classes and handlers in each object class...
                 ((List)locs).stream().forEach(e->{
+                    if (e instanceof Map) {
+                        nanoOffsetsToLocalDateTime((Map<String, Object>) e,base,skip,speed);
+                    }
+                });
+            }
+        }
+        if (m.containsKey("dwells")) {
+            Object dwells = m.get("dwells");
+            if (dwells instanceof List) {
+                // this is probably not good form but without a full schema of each data type built into classes and handlers in each object class...
+                ((List)dwells).stream().forEach(e->{
                     if (e instanceof Map) {
                         nanoOffsetsToLocalDateTime((Map<String, Object>) e,base,skip,speed);
                     }
