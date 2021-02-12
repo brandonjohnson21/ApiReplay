@@ -40,7 +40,7 @@ public class ApiHandler {
         return apiUrl;
     }
 
-    public void postData(DataPoint dataPoint) {
+    public void postData(DataPoint dataPoint, int index) {
     	this.executor.execute(new Runnable() {
             @Override
             public void run() {
@@ -52,10 +52,12 @@ public class ApiHandler {
                                 "Content-Type","application/json"
                         ).POST(HttpRequest.BodyPublishers.ofString(s, UTF_8))
                         .build();
-                    System.out.print(".");
                     HttpResponse<String> response;
                 try {
+                	long x=System.currentTimeMillis();
                     response = client.send(request, HttpResponse.BodyHandlers.ofString());
+                    long y=System.currentTimeMillis();
+                    System.out.print(index+"["+(y-x)+"] ");
                     if (response != null && response.statusCode() > 399) {
                         System.out.println("ERROR response " + response.statusCode());
                         System.out.println("Body:\n" + response.body());
