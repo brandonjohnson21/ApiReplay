@@ -40,13 +40,16 @@ public class Main {
             }
         }
         if (arguments.containsKey("-?") || args.length == 0) {
-            System.out.println("replay  -h hostAddress -d queryFileDirectory [-u username -p password] [-a authString] [-s playback_speed] [-?]\n" +
+            System.out.println("replay  -h hostAddress -d queryFileDirectory [-u username -p password] [-a authString] [-s playback_speed] [-t threads] [--startAtSystem system] [--startAtIndex index] [-?]\n" +
                                "    hostAddress             the address of the Rest endpoints.\n" +
                                "    queryFileDirectory      The directory that contains the json data to push to the api\n" +
                                "    username,password       The username and password for authorization for the api endpoints\n" +
                                "    authString              The encoded authstring for the authorization. Can be used in place\n" +
                                "                                of the username/password pair\n" +
                                "    playbackSpeed           The initial playback speed of the replayed data\n" +
+                               "    threads                 The number of threads to create for api posting\n" +
+                               "    system                  The system in the createdBy field to search for\n" +
+                               "    index                   The initial index of the date set to start at  \n" +
                                "    -?                      This usage message\n" +
                                "\n" +
                                "    Sample usage:\n" +

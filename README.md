@@ -9,7 +9,7 @@ replay api data from udl
 
 #### Usage:
 ```
-replay  -h hostAddress -d queryFileDirectory [-u username -p password] [-a authString] [-s playback_speed] [-t threads] [-?]
+replay  -h hostAddress -d queryFileDirectory [-u username -p password] [-a authString] [-s playback_speed] [-t threads] [--startAtSystem system] [--startAtIndex index] [-?]
                                    hostAddress             the address of the Rest endpoints.
                                    queryFileDirectory      The directory that contains the json data to push to the api
                                    username,password       The username and password for authorization for the api endpoints
@@ -17,6 +17,8 @@ replay  -h hostAddress -d queryFileDirectory [-u username -p password] [-a authS
                                                                of the username/password pair
                                    playbackSpeed           The initial playback speed of the replayed data
                                    threads                 The number of threads to use for posting data to endpoints
+                                   system                  The system in the createdBy field to search for
+                                   index                   The initial index of the date set to start at. Cannot be used with --startAtSystem  
                                    -?                      This usage message
                                
                                    Sample usage:
