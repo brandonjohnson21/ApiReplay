@@ -53,12 +53,17 @@ public class Replay {
         this.play();
         ticking.release();
     }
-    public void start() {
+    public void start(int index) {
         ticking.acquireUninterruptibly();
         this.reset();
+        this.lastSentIdx=index-1; // start at this index+1
+        this.skipNanoOffset=this.data.get(lastSentIdx+1).createdAt; // set the skip offset to be whatever the start time is.
         this.localStartTime = now(ZoneId.of("UTC"));
         this.play();
         ticking.release();
+    }
+    public void start() {
+        this.start(0);
     }
     private void play() {
         this.status=Status.PLAYING;
@@ -86,6 +91,9 @@ public class Replay {
         if (multiplier>0) {
             this.speed = multiplier;
             System.out.println("Replay speed set to: " + multiplier);
+            if (lastTickTime == null) {
+                lastTickTime = localStartTime;
+            }
             restartAt(lastTickTime);
         }
         ticking.release();

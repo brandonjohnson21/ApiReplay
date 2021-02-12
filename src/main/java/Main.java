@@ -8,6 +8,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static java.time.LocalDateTime.now;
 
@@ -24,6 +25,8 @@ public class Main {
                 "-d", // query directory
                 "-s", // playback speed
                 "-t", // thread count
+                "--startAtSystem", // system search/begin
+                "--startAtIndex", // index start
                 "-?" // help
         );
         HashMap<String, String> arguments = new HashMap<>();
@@ -103,12 +106,48 @@ public class Main {
         }else{
             apiHandler.setThreads(1);
         }
+        String startAtSearch = "";
+        int index=0;
+        if (arguments.containsKey("--startAtSystem")) {
+                startAtSearch = arguments.get("--startAtSystem");
+        }else if(arguments.containsKey("--startAtIndex")){
+            try {
+                index = Integer.parseInt(arguments.get("--startAtIndex"));
+            } catch (NumberFormatException e) {
+                System.out.println("Unknown index: " + arguments.get("--startAtIndex"));
+                e.printStackTrace();
+                index=0;
+            }
+        }
 
         System.out.println("Replaying data from: "+queryDir);
         System.out.println("Replaying data to: "+apiHandler.getApiUrl());
-
-        Replay.getInstance().setData(DataLoader.getInstance().load(queryDir.toFile()));
-        Replay.getInstance().playPause();
+        List<DataPoint> data = DataLoader.getInstance().load(queryDir.toFile());
+        Replay.getInstance().setData(data);
+        if (!startAtSearch.isEmpty()) {
+            System.out.println("Searching for createdBy of "+startAtSearch);
+            String finalStartAtSearch = startAtSearch.toLowerCase(); // another ide workaround i guess for effectively final
+            Optional<DataPoint> found = data.stream().filter(d->{
+                String createdBy = (String)d.data.get("createdBy");
+                return createdBy!=null && createdBy.toLowerCase().equals(finalStartAtSearch);
+            }).findFirst();
+            if (!found.isPresent()) {
+                found = data.stream().filter(d->{
+                    String createdBy = (String)d.data.get("createdBy");
+                    return createdBy!=null && createdBy.toLowerCase().equals("system."+finalStartAtSearch);
+                }).findFirst();
+            }
+            if (found.isPresent()) {
+                index= data.indexOf(found.get());
+                System.out.println("First element created by "+found.get().data.get("createdBy")+" at "+index);
+            }
+        }
+        if (index >= data.size() || index < 0) {
+            System.err.println("Invalid starting index detected: "+index+"\n Starting playback at index 0");
+            index = 0;
+        }
+        System.out.println("Starting at index: "+index);
+        Replay.getInstance().start(index);
 
         Thread uiThread = new Thread(TUI.getInstance());
         Thread ReplayThread = new Thread(new Runnable() {

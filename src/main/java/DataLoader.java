@@ -82,6 +82,7 @@ public class DataLoader {
             stripProperties(d.data);
         });
         Collections.sort(data);
+        System.out.println("Loaded " + data.size() + " total data entries.");
         return data;
     }
     private LocalDateTime getFirstTime(List<DataPoint> data) {
