@@ -112,7 +112,7 @@ public class Replay {
                         Manipulator.nanoOffsetsToLocalDateTime(d.data,localStartTime,skipNanoOffset,speed);
                         Manipulator.generateID(d.data);
                         // TODO: can add modifier call here for realtime modifications.  Not sure how performant these would be.
-                        Main.apiHandler.postData(d);
+                        Main.apiHandler.postData(d,lastSentIdx);
                         lastSentIdx = i;
                     }else{
                         break;

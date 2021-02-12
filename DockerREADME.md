@@ -21,5 +21,14 @@ Ideally, this is done by passing the environment variables to the container duri
 You should then be able to run the jar using the following
   `./replay.sh -h <HOST> -d "./data/"`
 Without adding any more networking, your host should be addressable as 172.17.0.1, eg.
-  `./replay.sh -h  https://pep.bluestaq.com -d "./data/"`
+  `./replay.sh -h  https://pep.bluestaq.com -d "./data/" -s 200000`
 
+Exporting/Importing the container:
+
+Export:
+docker save apireplay > apireplay.tar
+tar cfvz apireplay.tar.tgz apireplay.tar
+
+Import:
+tar xfvz apireplay.tar.gz
+docker load apireplay.tar
