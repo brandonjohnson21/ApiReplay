@@ -87,12 +87,14 @@ public class ApiHandler {
                         "Content-Type","application/json"
                 ).POST(HttpRequest.BodyPublishers.ofString(s, UTF_8))
                 .build();
-        System.out.print(".");
 //        System.out.println("-> "+request.toString());
 //        System.out.println("   "+request.headers());
 //        System.out.println("   "+s);
-        
+        long x=System.currentTimeMillis();
         HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        long y=System.currentTimeMillis();
+        System.out.print(y-x+" ");
+        
         if (response.statusCode()>399) {
             System.out.println("ERROR response "+response.statusCode());
             System.out.println("Body:\n"+response.body());
