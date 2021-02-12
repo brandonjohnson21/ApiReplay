@@ -7,8 +7,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -35,7 +33,7 @@ public class DataLoader {
             if (!fileName.endsWith(".json"))
                 return;
             String baseName = fileName.substring(0,fileName.lastIndexOf('.'));
-            Path queryFile = Paths.get(folder.toString(),baseName+".txt");
+            Path queryFile = Paths.get(file.getParent().toString(),baseName+".txt");
             if (Files.isRegularFile(queryFile) && Files.isReadable(queryFile)) {
                 try {
                     URL queryURL = new URL(Files.readString(queryFile));

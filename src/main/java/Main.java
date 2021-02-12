@@ -2,9 +2,14 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static java.time.LocalDateTime.now;
 
 public class Main {
     public static ApiHandler apiHandler;
@@ -18,6 +23,7 @@ public class Main {
                 "-a", // auth string
                 "-d", // query directory
                 "-s", // playback speed
+                "-t", // thread count
                 "-?" // help
         );
         HashMap<String, String> arguments = new HashMap<>();
@@ -46,7 +52,6 @@ public class Main {
                                "Hotkeys while running:\n" +
                                "p        Pause/Play replay\n" +
                                "s#       set playback speed to #x\n" +
-                               "r        reset playback to beginning of data\n" +
                                "q        exit playback\n"
                                );
         }
@@ -86,6 +91,18 @@ public class Main {
                 System.exit(-1);
             }
         }
+        if (arguments.containsKey("-t")) {
+            try {
+                int threads = Integer.parseInt(arguments.get("-t"));
+                apiHandler.setThreads(threads);
+            } catch (NumberFormatException e) {
+                System.out.println("Unknown thread count: " + arguments.get("-t"));
+                e.printStackTrace();
+                System.exit(-1);
+            }
+        }else{
+            apiHandler.setThreads(1);
+        }
 
         System.out.println("Replaying data from: "+queryDir);
         System.out.println("Replaying data to: "+apiHandler.getApiUrl());
@@ -97,30 +114,20 @@ public class Main {
         Thread ReplayThread = new Thread(new Runnable() {
             @Override
             public void run() {
+                LocalDateTime beginTime = now(ZoneId.of("UTC"));
                 System.out.println("Running");
                 while (Replay.getInstance().getStatus() != Status.COMPLETE && Replay.getInstance().getStatus() != Status.STOPPED) {
                     Replay.getInstance().tick();
                 }
+                apiHandler.awaitThreads();
+                LocalDateTime endTime = now(ZoneId.of("UTC"));
+                System.out.println("\n\nCompleted replay over " + ChronoUnit.MILLIS.between(beginTime,endTime)/1000.0+" seconds");
                 System.exit(0);
             }
         } );
         ReplayThread.start();
         uiThread.run(); // run tui on main, run replay on its own thread.
-        //ReplayThread.interrupt();
         ReplayThread.join(1000);
-        //List<HashMap<handler.queryData("test","/todos/1");
-//        JFrame frame = new JFrame("");
-//        UI panel = new UI();
-//        frame.addWindowListener(
-//                new WindowAdapter() {
-//                    public void windowClosing(WindowEvent e) {
-//                        System.exit(0);
-//                    }
-//                }
-//        );
-//        frame.getContentPane().add(panel,"Center");
-//        frame.setSize(panel.getPreferredSize());
-//        frame.setVisible(true);
 
     }
 
