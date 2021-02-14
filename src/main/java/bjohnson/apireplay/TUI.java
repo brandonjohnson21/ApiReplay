@@ -1,3 +1,5 @@
+package bjohnson.apireplay;
+
 import java.util.Scanner;
 
 // TODO: this is really slow, somehow speed this up

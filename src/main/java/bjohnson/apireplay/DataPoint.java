@@ -1,3 +1,5 @@
+package bjohnson.apireplay;
+
 import java.util.Map;
 
 public class DataPoint implements Comparable<DataPoint> {
