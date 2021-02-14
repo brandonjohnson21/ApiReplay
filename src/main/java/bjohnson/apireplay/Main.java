@@ -38,11 +38,11 @@ public class Main {
         Map<String, String> env = System.getenv();
 
         for (int i =0; i<args.length; i+=2){
-            if (!args[i].equals("-?") && !args[i].equals("?"))
-                arguments.put(args[i],args[i+1]);
             if (!validArguments.contains(args[i])) {
                 throw new IllegalArgumentException("Invalid argument: "+args[i]);
             }
+            if (!args[i].equals("-?") && !args[i].equals("?"))
+                arguments.put(args[i],args[i+1]);
         }
         if (arguments.containsKey("-?") || args.length == 0) {
             System.out.println("replay  -h hostAddress -d queryFileDirectory [-u username -p password] [-a authString] [-s playback_speed] [-t threads] [--startAtSystem system] [--startAtIndex index] [-?]\n" +
@@ -167,10 +167,12 @@ public class Main {
                     try {
                         if (Replay.getInstance().getStatus()==Status.PLAYING) {
                                 LocalDateTime lastSendTime = Replay.getInstance().tick();
-                                Thread.interrupted(); // clear interrupt flag if set
-                                long sleepTime = ChronoUnit.NANOS.between(lastSendTime,Replay.getInstance().getSendTime(Replay.getInstance().getNext()));
-                                //System.out.println("next dataset in "+TimeUnit.NANOSECONDS.toMillis(sleepTime)+" Milliseconds");
-                                TimeUnit.NANOSECONDS.sleep(sleepTime);
+                                if (Replay.getInstance().getNext()!=null) {
+                                    Thread.interrupted(); // clear interrupt flag if set
+                                    long sleepTime = ChronoUnit.NANOS.between(lastSendTime, Replay.getInstance().getSendTime(Replay.getInstance().getNext()));
+                                    //System.out.println("next dataset in "+TimeUnit.NANOSECONDS.toMillis(sleepTime)+" Milliseconds");
+                                    TimeUnit.NANOSECONDS.sleep(sleepTime);
+                                }
                         }else if(Replay.getInstance().getStatus()==Status.PAUSED){
                                 Thread.interrupted(); // clear interrupt flag if set
                                 Thread.sleep(Long.MAX_VALUE); // Sleep until interrupted from resume

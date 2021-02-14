@@ -39,7 +39,9 @@ public class Replay {
         return this.data;
     }
     public DataPoint getNext() {
-        return this.data.get(lastSentIdx+1);
+        if (lastSentIdx < this.data.size()-1)
+            return this.data.get(lastSentIdx+1);
+        return null;
     }
     public void playPause() {
         switch (this.status) {
@@ -124,8 +126,11 @@ public class Replay {
     public void setStatus(Status status) { this.status = status;}
     public void printStatus() {
         System.out.println("Replay status: "+getStatus());
-        System.out.println("At current speed, next dataset in "+TimeUnit.NANOSECONDS.toMillis((this.getNext().createdAt - this.skipNanoOffset) / this.speed)/1000.0 + " Seconds");
-
+        if (this.getNext()!= null) {
+            LocalDateTime compareTime = (this.getStatus()==Status.PLAYING)?now(ZoneId.of("UTC")):lastTickTime;
+            long nanos = ((this.getNext().createdAt - this.skipNanoOffset) / this.speed) - ChronoUnit.NANOS.between(localStartTime, compareTime);
+            System.out.println("At current speed, next dataset in " + TimeUnit.NANOSECONDS.toMillis(nanos) / 1000.0 + " Seconds");
+        }
     }
 
     public LocalDateTime tick() {
