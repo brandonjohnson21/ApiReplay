@@ -1,3 +1,5 @@
+package bjohnson.apireplay;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -9,13 +11,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Logger;
 
 import static java.time.LocalDateTime.now;
 
 public class Main {
     public static ApiHandler apiHandler;
+    public static Thread replayThread;
+    public static Logger Log = Logger.getLogger("ApiReplay");
     public static void main(String[] args) throws IOException, InterruptedException {
-//        System.out.println(Arrays.toString(args));
         Path queryDir;
         List<String> validArguments = List.of(
                 "-h", // Api host Address
@@ -153,23 +158,38 @@ public class Main {
         Replay.getInstance().start(index);
 
         Thread uiThread = new Thread(TUI.getInstance());
-        Thread ReplayThread = new Thread(new Runnable() {
+        replayThread = new Thread(new Runnable() {
             @Override
             public void run() {
                 LocalDateTime beginTime = now(ZoneId.of("UTC"));
                 System.out.println("Running");
                 while (Replay.getInstance().getStatus() != Status.COMPLETE && Replay.getInstance().getStatus() != Status.STOPPED) {
-                    Replay.getInstance().tick();
+                    try {
+                        if (Replay.getInstance().getStatus()==Status.PLAYING) {
+                                LocalDateTime lastSendTime = Replay.getInstance().tick();
+                                Thread.interrupted(); // clear interrupt flag if set
+                                long sleepTime = ChronoUnit.NANOS.between(lastSendTime,Replay.getInstance().getSendTime(Replay.getInstance().getNext()));
+                                //System.out.println("next dataset in "+TimeUnit.NANOSECONDS.toMillis(sleepTime)+" Milliseconds");
+                                TimeUnit.NANOSECONDS.sleep(sleepTime);
+                        }else if(Replay.getInstance().getStatus()==Status.PAUSED){
+                                Thread.interrupted(); // clear interrupt flag if set
+                                Thread.sleep(Long.MAX_VALUE); // Sleep until interrupted from resume
+                        }
+                    } catch (InterruptedException ignored) { }
+
                 }
+                System.out.println("All data has been queued for POSTing.");
                 apiHandler.awaitThreads();
                 LocalDateTime endTime = now(ZoneId.of("UTC"));
                 System.out.println("\n\nCompleted replay over " + ChronoUnit.MILLIS.between(beginTime,endTime)/1000.0+" seconds");
                 System.exit(0);
             }
         } );
-        ReplayThread.start();
+        replayThread.start();
         uiThread.run(); // run tui on main, run replay on its own thread.
-        ReplayThread.join(1000);
+        Replay.getInstance().setStatus(Status.STOPPED);
+        replayThread.interrupt();
+        replayThread.join(1000);
 
     }
 
