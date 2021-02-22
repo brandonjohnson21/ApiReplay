@@ -34,7 +34,7 @@ You should then be able to run the jar using the following
   
 Without adding any more networking, your host should be addressable as 172.17.0.1, eg.
 
-  `./replay.sh https://pep.bluestaq.com `
+  `./replay.sh https://test.unifieddatalibrary.com/ `
 
 Exporting/Importing the container:
 
